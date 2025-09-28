@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+    <meta name="description" content="Juego de Tetris optimizado para desktop y móvil" />
+    <meta name="theme-color" content="#081023" />
+    <title>TETRIS</title>
+    <link rel="preload" href="css/style.css" as="style" />
+    <link rel="preload" href="js/models.js" as="script" />
+    <link rel="preload" href="js/game.js" as="script" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Crect%20width='16'%20height='16'%20fill='%23081023'/%3E%3Ctext%20x='8'%20y='11'%20font-size='10'%20fill='%23fff'%20text-anchor='middle'%3ET%3C/text%3E%3C/svg%3E">
+  <body>
+    <main class="app">
+      <section class="card">
+        <div style="display:flex;align-items:center;gap:10px;width:100%;justify-content:space-between">
+          <h1 class="title">TETRIS</h1>
+          <div style="display:flex;gap:8px;align-items:center">
+            <!-- Sound toggle moved to audio settings modal -->
+          </div>
+        </div>
+        <!-- Contador de visitas/juegos -->
+        <div class="visit-counter">
+          <span id="visitCounter">Cargando estadísticas...</span>
+        </div>
+        <!-- Contenido principal: tablero y barras -->
+        <div class="content">
+          <!-- Barra superior para móvil (marcador + tiempo) -->
+          <div id="mobileTopbar" class="mobile-topbar" aria-hidden="true"></div>
+
+          <!-- Leaderboard (Top 5) - columna izquierda en desktop -->
+          <div class="leaderboard panel">
+            <h2>Top 5</h2>
+            <div id="leaderboardList" class="leaderboard-list"></div>
+          </div>
+
+          <!-- Tablero central -->
+          <div class="board-wrap" style="position:relative;display:inline-block">
+            <canvas id="board" width="240" height="480" aria-label="Tablero de Tetris" style="touch-action:none;image-rendering:pixelated;image-rendering:-webkit-crisp-edges;image-rendering:crisp-edges"></canvas>
+
+            <!-- Start overlay: shown on first visit so game doesn't auto-start -->
+            <div class="start-overlay" id="startOverlay">
+              <button id="btnStart" class="btn">INICIAR</button>
+            </div>
+
+            <!-- Overlay siguiente (móvil): etiqueta + canvas como unidad -->
+            <div class="next-overlay-wrap" aria-hidden="true">
+              <div class="next-overlay-label">Siguiente:</div>
+              <canvas id="nextOverlay" width="80" height="80" class="next-overlay" aria-hidden="true" style="image-rendering:pixelated;image-rendering:-webkit-crisp-edges;image-rendering:crisp-edges"></canvas>
+            </div>
+          </div>
+
+          <!-- Controles táctiles (se muestran en móvil debajo del tablero) -->
+          <div class="panel touch-controls" id="touchControls">
+            <div class="touch-row">
+              <button id="btnTouchRotateL" class="touch-btn" aria-label="Rotar izquierda">
+                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="1 4 1 10 7 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button id="btnTouchRotateR" class="touch-btn" aria-label="Rotar derecha">
+                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="23 20 23 14 17 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M20.49 9a9 9 0 1 0-2.13 9.36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </div>
+            <div class="touch-row">
+              <button id="btnTouchLeft" class="touch-btn" aria-label="Mover izquierda">◀</button>
+              <button id="btnTouchSoft" class="touch-btn" aria-label="Bajar">▾</button>
+              <button id="btnTouchRight" class="touch-btn" aria-label="Mover derecha">▶</button>
+            </div>
+            <div class="touch-row">
+              <button id="btnTouchHard" class="touch-btn touch-btn-accent" aria-label="Bajar instantáneo">▼</button>
+              <button id="btnTouchPause" class="touch-btn touch-btn-secondary" aria-label="Pausa">▮▮</button>
+            </div>
+          </div>
+
+          <!-- Sidebar derecho: Siguiente (mini), Marcador, Tiempo, Controles -->
+          <aside class="sidebar">
+            <div class="panel">
+              <h2>Siguiente</h2>
+              <canvas id="next" width="80" height="80" style="image-rendering:pixelated;image-rendering:-webkit-crisp-edges;image-rendering:crisp-edges"></canvas>
+            </div>
+
+            <div class="panel-stats-grid">
+              <div class="panel">
+                <h2>Marcador</h2>
+                <div class="stats">
+                  <div>Score: <span id="score">0</span></div>
+                  <div>Lineas: <span id="lines">0</span></div>
+                  <div>Nivel: <span id="level">1</span></div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <h2>Tiempo</h2>
+                <div class="time" id="time">00:00</div>
+              </div>
+            </div>
+
+            <div class="panel controls"></div>
+            <!-- touch controls moved to below the board for mobile; keep aside clean on larger screens -->
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <!-- Scripts de la app -->
+    <script src="js/models.js" defer></script>
+    <script src="js/game.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/leaderboard.js" defer></script>
+
+    <!-- Modal: menú (pausa) -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-overlay" id="modalOverlay"></div>
+      <div class="modal-content" role="document">
+        <h2 id="modalTitle" class="modal-title" style="text-align:center">Menú</h2>
+        <div class="modal-body">
+          <div id="modalMain">
+            <!-- Mobile-only close button (appears in small viewports) -->
+            <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+              <button id="btnModalClose" class="btn btn-secondary mobile-only">Cerrar</button>
+            </div>
+            <button id="btnRestart" class="btn">Reiniciar</button>
+            <button id="btnKeyConfig" class="btn">Configurar teclado</button>
+            <button id="btnAudioConfig" class="btn">Configurar sonido</button>
+            <div class="speed-group">
+              <label>Velocidad:</label>
+              <div class="speed-buttons">
+                <button class="btn speed-btn active" data-mult="1">x1</button>
+                <button class="btn speed-btn" data-mult="2">x2</button>
+                <button class="btn speed-btn" data-mult="3">x3</button>
+              </div>
+            </div>
+            <div class="modal-foot"><span class="esc-hint">Presiona ESC para cerrar</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: configurar teclas -->
+    <div id="modalKeyConfig" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalKeyConfigTitle">
+      <div class="modal-overlay" id="modalOverlayKey"></div>
+      <div class="modal-content" role="document">
+        <h2 id="modalKeyConfigTitle">Configurar teclas <span id="saveBadge" class="save-badge">Sin cambios</span></h2>
+        <div class="modal-body">
+          <div class="key-config" id="keyConfig">
+            <div class="key-rows"></div>
+            <div class="key-config-foot">Presiona la nueva tecla para asignarla. ESC cancela.</div>
+            <div class="key-config-actions">
+              <button id="btnKeyBack" class="btn btn-secondary">Volver</button>
+              <button id="btnKeyReset" class="btn btn-secondary">Restablecer predeterminados</button>
+              <button id="btnKeySave" class="btn">Guardar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: configurar audio -->
+    <div id="modalAudioConfig" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalAudioConfigTitle">
+      <div class="modal-overlay" id="modalAudioOverlay"></div>
+      <div class="modal-content" role="document">
+        <h2 id="modalAudioConfigTitle">Configurar sonido</h2>
+        <div class="modal-body">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+              <div style="font-weight:600">Sonido</div>
+              <button id="audioEnabledToggle" class="btn btn-secondary" aria-pressed="true" title="Activar/Desactivar sonido">♪</button>
+            </div>
+            <div>
+              <label for="audioMaster">General</label>
+              <input id="audioMaster" type="range" min="0" max="100" value="36" style="width:100%" />
+            </div>
+            <div>
+              <label for="audioMusic">Música</label>
+              <input id="audioMusic" type="range" min="0" max="100" value="36" style="width:100%" />
+            </div>
+            <div>
+              <label for="audioSfx">Efectos (SFX)</label>
+              <input id="audioSfx" type="range" min="0" max="100" value="36" style="width:100%" />
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button id="btnAudioCancel" class="btn btn-secondary">Cancelar</button>
+              <button id="btnAudioSave" class="btn">Guardar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Game Over -->
+    <div id="modalGameOver" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalGameOverTitle">
+      <div class="modal-overlay" id="modalGameOverOverlay"></div>
+      <div class="modal-content" role="document">
+        <h2 id="modalGameOverTitle">Game Over</h2>
+        <div class="modal-body">
+          <div id="gameOverMain">
+            <div>Tu puntuación: <strong id="gameOverScore">0</strong></div>
+            <div style="margin-top:8px;">
+              <label for="gameOverName">Tu nombre:</label><br>
+              <input id="gameOverName" type="text" maxlength="24" placeholder="---" />
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button id="btnGameOverSubmit" class="btn">Enviar y Reiniciar</button>
+              <button id="btnGameOverRestart" class="btn btn-secondary">Reiniciar sin guardar</button>
+            </div>
+            <div class="modal-foot">Presiona ESC para cerrar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast: confirmar cambios no guardados -->
+    <div id="unsavedToast" class="toast hidden" role="dialog" aria-live="assertive">
+      <div class="toast-content">
+        <div class="toast-message">Tienes cambios sin guardar. ¿Descartar?</div>
+        <div class="toast-actions">
+          <button id="toastDiscard" class="btn btn-secondary">Descartar</button>
+          <button id="toastCancel" class="btn">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast éxito -->
+    <div id="successToast" class="toast hidden" role="status" aria-live="polite">
+      <div class="toast-content" id="successToastContent">Teclas reiniciadas correctamente.</div>
+    </div>
+  </body>
+</html>
