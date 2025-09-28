@@ -1,5 +1,6 @@
 (function(){
-  let REMOTE_LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbxtRT2ikEF5ZDOC1eLFfXhhQtjRrGRZMcAKKAtOsU2tYQ4XEhBla7s9ZK8i2S3bqGjd/exec';
+  // REMOTE_LEADERBOARD_URL should be set as a global variable before this script runs.
+  let REMOTE_LEADERBOARD_URL = window.REMOTE_LEADERBOARD_URL || '';
 
   // Cache para evitar requests innecesarios
   let cachedLeaderboard = null;
