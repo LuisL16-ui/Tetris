@@ -95,7 +95,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
     // apply initial volumes
     applyVolumes();
 
-  function setEnabled(v){ enabled = !!v; if(!enabled){ try{ assets.music.pause(); }catch(e){} } else { try{ assets.music.play().catch(()=>{}); }catch(e){} } if(audioEnabledToggle) audioEnabledToggle.setAttribute('aria-pressed', String(enabled)); }
+  function setEnabled(v) {
+    enabled = !!v;
+    if (!enabled) {
+      try {
+        assets.music.pause();
+      } catch (e) {}
+    } else {
+      try {
+        assets.music.play().catch(() => {});
+      } catch (e) {}
+    }
+    if (audioEnabledToggle)
+      audioEnabledToggle.setAttribute('aria-pressed', String(enabled));
+  }
     function toggle(){ setEnabled(!enabled); }
     function play(name){ if(!enabled) return; const a = assets[name]; if(!a) return; try{ a.currentTime = 0; a.play().catch(()=>{}); }catch(e){} }
     function startMusicIfEnabled(){ if(enabled){ try{ assets.music.play().catch(()=>{}); }catch(e){} } }
