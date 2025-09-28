@@ -13,14 +13,6 @@ Características
 - Puntuación y niveles progresivos.
 - Diseño ligero y responsivo.
 
-Controles
-- ← / → : mover pieza
-- ↑ : rotar pieza
-- ↓ : descenso rápido (soft drop)
-- Space : descenso inmediato (hard drop)
-- P : pausar/reanudar
-
-
 
 Contribuciones
 - Pull requests y sugerencias son bienvenidas.
