@@ -95,7 +95,20 @@ window.addEventListener('DOMContentLoaded', ()=>{
     // apply initial volumes
     applyVolumes();
 
-  function setEnabled(v){ enabled = !!v; if(!enabled){ try{ assets.music.pause(); }catch(e){} } else { try{ assets.music.play().catch(()=>{}); }catch(e){} } if(audioEnabledToggle) audioEnabledToggle.setAttribute('aria-pressed', String(enabled)); }
+  function setEnabled(v) {
+    enabled = !!v;
+    if (!enabled) {
+      try {
+        assets.music.pause();
+      } catch (e) {}
+    } else {
+      try {
+        assets.music.play().catch(() => {});
+      } catch (e) {}
+    }
+    if (audioEnabledToggle)
+      audioEnabledToggle.setAttribute('aria-pressed', String(enabled));
+  }
     function toggle(){ setEnabled(!enabled); }
     function play(name){ if(!enabled) return; const a = assets[name]; if(!a) return; try{ a.currentTime = 0; a.play().catch(()=>{}); }catch(e){} }
     function startMusicIfEnabled(){ if(enabled){ try{ assets.music.play().catch(()=>{}); }catch(e){} } }
@@ -365,14 +378,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
       e.preventDefault();
       const code = e.code;
       const action = listeningBtn.dataset.action;
-  if(!pendingBindings) pendingBindings = normalizeBindings(window.game.bindings);
+      if(!pendingBindings) pendingBindings = normalizeBindings(window.game.bindings);
 
-  // Construir el mapa actual efectivo (pending override sobre game.bindings) y normalizar
-  const effectiveRaw = Object.assign({}, window.game.bindings, pendingBindings);
-  const effective = normalizeBindings(effectiveRaw);
+      // Construir el mapa actual efectivo (pending override sobre game.bindings) y normalizar
+      const effectiveRaw = Object.assign({}, window.game.bindings, pendingBindings);
+      const effective = normalizeBindings(effectiveRaw);
 
-  // Buscar si la tecla ya está asignada a otra acción
-  const alreadyFor = Object.keys(effective).find(k => (effective[k] === code));
+      // Buscar si la tecla ya está asignada a otra acción
+      const alreadyFor = Object.keys(effective).find(k => (effective[k] === code));
       if(alreadyFor && alreadyFor !== action){
         // Mostrar mensaje breve en el botón y no asignar
         listeningBtn.classList.remove('listening');
